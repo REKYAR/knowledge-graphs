@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nanopublication Collaborative Review</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Nanopublication Collaborative Literature Review</h1>
+
+    <!-- Formularz wyszukiwania nanopublikacji -->
+    <input type="text" id="keyword" placeholder="Enter keyword">
+    <button onclick="searchNanopubs()">Search</button>
+
+    <div id="summary-table"></div>
+
+    <!-- Formularz publikowania nanopublikacji -->
+    <h2>Publish a Nanopublication</h2>
+    <form id="publish-form">
+        <textarea id="assertion" placeholder="Enter assertion"></textarea><br>
+        <input type="text" id="creator" placeholder="Enter creator name"><br>
+        <button type="button" onclick="publishNanopub()">Publish</button>
+    </form>
+
+    <script>
+        // Funkcja do wyszukiwania nanopublikacji
+        async function searchNanopubs() {
+            const keyword = document.getElementById('keyword').value;
+            try {
+                const response = await fetch(`/search_nanopubs?keyword=${encodeURIComponent(keyword)}&limit=5`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Sprawdź, czy data jest tablicą
+                if (Array.isArray(data)) {
+                    let html = "<table border='1'><thead><tr><th>URI</th><th>Creator</th><th>Assertion</th></tr></thead><tbody>";
+                    data.forEach(np => {
+                        html += `
+                            <tr>
+                                <td><a href="${np.URI}" target="_blank">${np.URI}</a></td>
+                                <td>${np.Creator}</td>
+                                <td>${np.Assertion}</td>
+                            </tr>
+                        `;
+                    });
+                    html += "</tbody></table>";
+                    document.getElementById('summary-table').innerHTML = html;
+                } else if (data.error) {
+                    // Jeśli zwracany jest błąd, wyświetl go na stronie
+                    document.getElementById('summary-table').innerHTML = `<p>Error: ${data.error}</p>`;
+                } else {
+                    // Obsłuż przypadek, gdy odpowiedź jest w nieoczekiwanym formacie
+                    document.getElementById('summary-table').innerHTML = `<p>Unexpected response format.</p>`;
+                }
+            } catch (error) {
+                console.error('Error fetching nanopublications:', error);
+                document.getElementById('summary-table').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+
+        // Funkcja do publikowania nanopublikacji
+        async function publishNanopub() {
+            const assertion = document.getElementById('assertion').value;
+            const creator = document.getElementById('creator').value;
+
+            const formData = new FormData();
+            formData.append('assertion', assertion);
+            formData.append('creator', creator);
+
+            const response = await fetch('/publish_nanopub', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.error) {
+                alert(`Error: ${result.error}`);
+            } else {
+                alert(`Nanopublication published successfully! URI: ${result.uri}`);
+            }
+        }
+    </script>
+</body>
+</html>
