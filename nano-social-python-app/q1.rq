@@ -1,0 +1,45 @@
+# https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate #template relation
+# http://purl.org/pav/createdBy #who created?
+# http://purl.org/dc/terms/creator #who created
+# http://purl.org/nanopub/x/signedBy #who signed
+
+#explore relations
+select distinct ?b
+where {
+?a ?b ?c}
+
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?b = <http://purl.org/pav/createdBy>)
+} limit 100
+
+#all my stuff
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://orcid.org/0009-0009-6638-993X> || 
+         ?a = <https://orcid.org/0009-0009-6638-993X> ||
+         ?b = <https://orcid.org/0009-0009-6638-993X>)
+}
+
+#all pub info
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> || 
+         ?a = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> ||
+         ?b = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU>)
+}
+
+#all user stuff
+SELECT distinct ?a  WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://orcid.org/0009-0009-6638-993X> &&
+         ?b = <http://purl.org/dc/terms/creator>)
+}
+
+#template used to publish nanopub
+SELECT distinct ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(
+         ?a = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> &&
+         ?b = <https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate>)
+}
