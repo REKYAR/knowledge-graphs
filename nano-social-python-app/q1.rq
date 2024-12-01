@@ -43,3 +43,54 @@ SELECT distinct ?a ?b ?c WHERE {
          ?a = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> &&
          ?b = <https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate>)
 }
+
+SELECT distinct ?a  WHERE {
+  ?a https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw .
+}
+
+SELECT distinct ?c  WHERE {
+  ?a https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw .
+}
+
+https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4
+
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4> || 
+         ?a = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4> ||
+         ?b = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4>)
+}
+
+
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4#assertion> || 
+         ?a = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4#assertion> ||
+         ?b = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4#assertion>)
+}
+
+
+	
+
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4#assertion> || 
+         ?a = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4#assertion> ||
+         ?b = <https://w3id.org/np/RA5emYRFMtJWfKRIS5f3bKkokstPELk_Rzk47B4Osz8j4#assertion>)
+}
+
+SELECT ?a ?b ?c WHERE {
+  ?a ?b ?c .
+  FILTER(?c = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU#assertion> || 
+         ?a = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU#assertion> ||
+         ?b = <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU#assertion>)
+}
+
+SELECT?o WHERE {
+            <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU#assertion> <http://www.w3.org/2000/01/rdf-schema#label> ?o .
+        }
+
+
+SELECT?o WHERE {
+            <https://w3id.org/np/RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI#assertion> <http://www.w3.org/2000/01/rdf-schema#label> ?o .
+        }

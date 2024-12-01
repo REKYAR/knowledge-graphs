@@ -11,6 +11,7 @@ nano_pubs = NanoPubs()
 def display_comments(comments: dict, level: int = 0) -> None:
     for comment in comments:
         indent = " " * (level * 4)
+        st.markdown(f"{indent}- {comment['author']} ({comment['date']})")
         st.markdown(f"{indent}: {comment['uri']}")
 
         if comment.get("comments"):
