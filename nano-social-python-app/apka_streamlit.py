@@ -73,9 +73,28 @@ with col1:
                 items.append(new_uri)
 
         selected_uri = st.session_state.get("selected_uri", None)
+
         for item in items:
             if st.button(item, key=item):
                 st.session_state.selected_uri = item
+
+        if selected_uri:
+
+            text = nano_pubs.get_npub_text(npub_uri=selected_uri)
+            print(text)
+            try:
+                text = text[0]["o"]["value"]
+            except KeyError or ValueError:
+                text = "No text found."
+            print(text)
+
+            st.write(f"{text}")
+            comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
+            st.write(f"Wybrana nano-publikacja: **{selected_uri}**")
+            if comments:
+                display_comments(comments)
+            else:
+                st.write("Brak komentarzy.")
 
 with col2:
     st.header("Komentarze")
