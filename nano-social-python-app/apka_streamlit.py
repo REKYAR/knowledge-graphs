@@ -66,12 +66,15 @@ with tab1:
         selected_uri = st.session_state.get("selected_uri", None)
         if selected_uri:
             text = nano_pubs.get_npub_text(npub_uri=selected_uri)
-            print(text)
+            author = nano_pubs.get_author(npub_uri=selected_uri)
+            date = nano_pubs.get_date(npub_uri=selected_uri)
             try:
                 text = text[0]["o"]["value"]
             except IndexError:
                 text = "No text found."
             #print(text)
+            st.write(f"Autor: **{author}**")
+            st.write(f"Data: **{date}**")
             st.write(f"{text}")
             comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
             st.write(f"Wybrana nano-publikacja: **{selected_uri}**")

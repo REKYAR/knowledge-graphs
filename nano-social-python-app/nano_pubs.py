@@ -68,6 +68,47 @@ class NanoPubs:
         else:
             results = results["results"]["bindings"]
             return [e["a"]["value"] for e in results]
+    
+
+    def get_author(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
+        if npub_uri is None:
+            npub_uri = f"https://w3id.org/np/{npub_id}"
+
+        query = f"""
+        SELECT?o WHERE {{
+            <{npub_uri}> <http://purl.org/dc/terms/creator> ?o .
+        }}
+        """
+
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.queryAndConvert()
+        results = results["results"]["bindings"]
+        try:
+            return results[0]["o"]["value"]
+        except IndexError:
+            return "No author found."
+
+    def get_date(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
+        if npub_uri is None:
+            npub_uri = f"https://w3id.org/np/{npub_id}"
+
+        query = f"""
+        SELECT?o WHERE {{
+            <{npub_uri}> <http://purl.org/dc/terms/created> ?o .
+        }}
+        """
+
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.queryAndConvert()
+        results = results["results"]["bindings"]
+
+        try:
+            return results[0]["o"]["value"]
+        except IndexError:
+            return "No date found."
+        #return results[0]["o"]["value"]
 
     def get_npub_comments(
             self,
@@ -111,6 +152,9 @@ class NanoPubs:
             uri = comment["referring"]["value"]
             the_comment = {
                 "uri": uri,
+                "text": self.get_npub_text(npub_uri=uri),
+                "author": self.get_author(npub_uri=uri),
+                "date": self.get_date(npub_uri=uri),
                 "comments": self.get_npub_comments_tree(npub_uri=uri)
             }
             tree.append(the_comment)
