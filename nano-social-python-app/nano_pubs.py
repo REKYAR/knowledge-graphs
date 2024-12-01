@@ -70,33 +70,13 @@ class NanoPubs:
             return [e["a"]["value"] for e in results]
     
 
-    # def get_author(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
-    #     if npub_uri is None:
-    #         npub_uri = f"https://w3id.org/np/{npub_id}"
-
-    #     query = f"""
-    #     SELECT?o WHERE {{
-    #         <{npub_uri}> <http://purl.org/dc/terms/creator> ?o .
-    #     }}
-    #     """
-
-    #     self.sparql.setQuery(query)
-    #     self.sparql.setReturnFormat(JSON)
-    #     results = self.sparql.queryAndConvert()
-    #     results = results["results"]["bindings"]
-    #     try:
-    #         return results[0]["o"]["value"]
-    #     except IndexError:
-    #         return "No author found."
-
     def get_author(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
 
         query = f"""
-        SELECT ?creator ?name WHERE {{
-            <{npub_uri}> <http://purl.org/dc/terms/creator> ?creator .
-            OPTIONAL {{ ?creator <http://xmlns.com/foaf/0.1/name> ?name . }}
+        SELECT?o WHERE {{
+            <{npub_uri}> <http://purl.org/dc/terms/creator> ?o .
         }}
         """
 
@@ -105,11 +85,31 @@ class NanoPubs:
         results = self.sparql.queryAndConvert()
         results = results["results"]["bindings"]
         try:
-            creator = results[0]["creator"]["value"]
-            name = results[0].get("name", {}).get("value", "No name found")
-            return f"Creator: {creator}, Name: {name}"
+            return results[0]["o"]["value"]
         except IndexError:
             return "No author found."
+
+    # def get_author(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
+    #     if npub_uri is None:
+    #         npub_uri = f"https://w3id.org/np/{npub_id}"
+
+    #     query = f"""
+    #     SELECT ?creator ?name WHERE {{
+    #         <{npub_uri}> <http://purl.org/dc/terms/creator> ?creator .
+    #         OPTIONAL {{ ?creator <http://xmlns.com/foaf/0.1/name> ?name . }}
+    #     }}
+    #     """
+
+    #     self.sparql.setQuery(query)
+    #     self.sparql.setReturnFormat(JSON)
+    #     results = self.sparql.queryAndConvert()
+    #     results = results["results"]["bindings"]
+    #     try:
+    #         creator = results[0]["creator"]["value"]
+    #         name = results[0].get("name", {}).get("value", "No name found")
+    #         return f"Creator: {creator}, Name: {name}"
+    #     except IndexError:
+    #         return "No author found."
 
     def get_date(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
         if npub_uri is None:
