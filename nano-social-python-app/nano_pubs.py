@@ -1,6 +1,8 @@
 from SPARQLWrapper import SPARQLWrapper
 from SPARQLWrapper import JSON
 
+from constans import TEXT_NOT_FOUND, AUTHOR_NOT_FOUNT, DATE_NOT_FOUND
+
 
 class NanoPubs:
     def __init__(self, endpoint: str | None = None) -> None:
@@ -68,9 +70,13 @@ class NanoPubs:
         else:
             results = results["results"]["bindings"]
             return [e["a"]["value"] for e in results]
-    
 
-    def get_author(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
+    def get_author(
+            self,
+            npub_id: str | None = None,
+            npub_uri: str | None = None
+            ) -> str:
+
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
 
@@ -84,34 +90,18 @@ class NanoPubs:
         self.sparql.setReturnFormat(JSON)
         results = self.sparql.queryAndConvert()
         results = results["results"]["bindings"]
-        try:
-            return results[0]["o"]["value"]
-        except IndexError:
-            return "No author found."
 
-    # def get_author(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
-    #     if npub_uri is None:
-    #         npub_uri = f"https://w3id.org/np/{npub_id}"
+        if len(results) == 0:
+            return AUTHOR_NOT_FOUNT
 
-    #     query = f"""
-    #     SELECT ?creator ?name WHERE {{
-    #         <{npub_uri}> <http://purl.org/dc/terms/creator> ?creator .
-    #         OPTIONAL {{ ?creator <http://xmlns.com/foaf/0.1/name> ?name . }}
-    #     }}
-    #     """
+        return results[0]["o"]["value"]
 
-    #     self.sparql.setQuery(query)
-    #     self.sparql.setReturnFormat(JSON)
-    #     results = self.sparql.queryAndConvert()
-    #     results = results["results"]["bindings"]
-    #     try:
-    #         creator = results[0]["creator"]["value"]
-    #         name = results[0].get("name", {}).get("value", "No name found")
-    #         return f"Creator: {creator}, Name: {name}"
-    #     except IndexError:
-    #         return "No author found."
+    def get_date(
+            self,
+            npub_id: str | None = None,
+            npub_uri: str | None = None
+            ) -> str:
 
-    def get_date(self, npub_id: str | None = None, npub_uri: str | None = None) -> str:
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
 
@@ -126,11 +116,10 @@ class NanoPubs:
         results = self.sparql.queryAndConvert()
         results = results["results"]["bindings"]
 
-        try:
-            return results[0]["o"]["value"]
-        except IndexError:
-            return "No date found."
-        #return results[0]["o"]["value"]
+        if len(results) == 0:
+            return DATE_NOT_FOUND
+
+        return results[0]["o"]["value"]
 
     def get_npub_comments(
             self,
@@ -183,11 +172,12 @@ class NanoPubs:
 
         return tree
 
-
-    def get_npub_text(self,
-                      npub_id: str | None = None,
-                      npub_uri: str | None = None,
-                      simple: bool = True) -> str:
+    def get_npub_text(
+            self,
+            npub_id: str | None = None,
+            npub_uri: str | None = None,
+            simple: bool = True
+            ) -> str:
 
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
@@ -205,11 +195,10 @@ class NanoPubs:
             return results
         else:
             results = results["results"]["bindings"]
-            try:
-                return results[0]["o"]["value"]
-            except IndexError:
-                return "No text found."
-            #return [e["o"]["value"] for e in results]
+            if len(results) == 0:
+                return TEXT_NOT_FOUND
+
+            return results[0]["o"]["value"]
 
 
 if __name__ == "__main__":

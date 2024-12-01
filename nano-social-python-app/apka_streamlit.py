@@ -1,8 +1,10 @@
+from datetime import datetime
 import re
 
 import streamlit as st
 
 from nano_pubs import NanoPubs
+from constans import TEXT_NOT_FOUND
 
 
 nano_pubs = NanoPubs()
@@ -14,9 +16,10 @@ def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
         line_prefix = prefix + ("└── " if is_last else "├── ")
         new_prefix = prefix + ("    " if is_last else "│   ")
 
-        st.markdown(f"{line_prefix} **{comment['author']}** napisał/a {comment['date']}", unsafe_allow_html=True)
-        st.markdown(f"{line_prefix} {comment['text']}", unsafe_allow_html=True)
-        st.markdown(f"{line_prefix} {comment['uri']}", unsafe_allow_html=True)
+        date_obj = datetime.strptime(comment["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        date = date_obj.strftime("%Y-%m-%d %H:%M")
+
+        st.markdown(f"{line_prefix} {date} - **[Użytkownik]({comment['author']})** napisał: [{comment['text']}]({comment['uri']})", unsafe_allow_html=True)
 
         button_prefix = new_prefix + ("│   " if not is_last else "    ")
         st.markdown(f"{button_prefix}<button style='margin-left: 30px; font-size: 15px;'>{'Dodaj odpowiedź'}</button>", unsafe_allow_html=True)
@@ -76,39 +79,30 @@ with col1:
 
         selected_uri = st.session_state.get("selected_uri", None)
 
-        for item in items:
-            if st.button(item, key=item):
-                st.session_state.selected_uri = item
+        for uri in items:
+            button_text = nano_pubs.get_npub_text(npub_uri=uri, simple=True)
+            if button_text == TEXT_NOT_FOUND:
+                button_text = uri
 
-        if selected_uri:
-
-            text = nano_pubs.get_npub_text(npub_uri=selected_uri)
-            author = nano_pubs.get_author(npub_uri=selected_uri)
-            date = nano_pubs.get_date(npub_uri=selected_uri)
-            try:
-                text = text[0]["o"]["value"]
-            except KeyError or ValueError:
-                text = "No text found."
-            print(text)
-            st.write(f"Autor: **{author}**")
-            st.write(f"Data: **{date}**")
-            st.write(f"{text}")
-            comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
-            st.write(f"Wybrana nano-publikacja: **{selected_uri}**")
-            if comments:
-                display_comments(comments)
-            else:
-                st.write("Brak komentarzy.")
+            if st.button(button_text, key=uri):
+                st.session_state.selected_uri = uri
 
 with col2:
     st.header("Komentarze")
     selected_uri = st.session_state.get("selected_uri", None)
     if selected_uri:
+        author = nano_pubs.get_author(npub_uri=selected_uri)
+        date = nano_pubs.get_date(npub_uri=selected_uri)
+        text = nano_pubs.get_npub_text(npub_uri=selected_uri)
+        if text == selected_uri:
+            text = "No text found!"
+
+        st.write(f"**Wybrana nano-publikacja:** {selected_uri}")
+        st.write(f"**Author:** {author}")
+        st.write(f"**Date:** {date}")
+        st.write(f"**Text:** {text}")
+
         comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
-        st.write(f"Wybrana nano-publikacja: **{selected_uri}**")
-        st.write(f"Author: **{nano_pubs.get_author(npub_uri=selected_uri)}**")
-        st.write(f"Data: **{nano_pubs.get_date(npub_uri=selected_uri)}**")
-        st.write(f"{nano_pubs.get_npub_text(npub_uri=selected_uri)}")
         if comments:
             display_comments(comments)
         else:
