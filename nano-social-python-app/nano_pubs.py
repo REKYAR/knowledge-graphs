@@ -186,7 +186,8 @@ class NanoPubs:
 
     def get_npub_text(self,
                       npub_id: str | None = None,
-                      npub_uri: str | None = None) -> str:
+                      npub_uri: str | None = None,
+                      simple: bool = False) -> str:
 
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
@@ -200,9 +201,11 @@ class NanoPubs:
         self.sparql.setQuery(query)
         self.sparql.setReturnFormat(JSON)
         results = self.sparql.queryAndConvert()
-        results = results["results"]["bindings"]
-
-        return results
+        if not simple:
+            return results
+        else:
+            results = results["results"]["bindings"]
+            return [e["o"]["value"] for e in results]
 
 
 if __name__ == "__main__":
