@@ -106,6 +106,9 @@ with col2:
     if selected_uri:
         comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
         st.write(f"Wybrana nano-publikacja: **{selected_uri}**")
+        st.write(f"Author: **{nano_pubs.get_author(npub_uri=selected_uri)}**")
+        st.write(f"Data: **{nano_pubs.get_date(npub_uri=selected_uri)}**")
+        st.write(f"{nano_pubs.get_npub_text(npub_uri=selected_uri)}")
         if comments:
             display_comments(comments)
         else:

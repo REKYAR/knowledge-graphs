@@ -187,7 +187,7 @@ class NanoPubs:
     def get_npub_text(self,
                       npub_id: str | None = None,
                       npub_uri: str | None = None,
-                      simple: bool = False) -> str:
+                      simple: bool = True) -> str:
 
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
@@ -205,7 +205,11 @@ class NanoPubs:
             return results
         else:
             results = results["results"]["bindings"]
-            return [e["o"]["value"] for e in results]
+            try:
+                return results[0]["o"]["value"]
+            except IndexError:
+                return "No text found."
+            #return [e["o"]["value"] for e in results]
 
 
 if __name__ == "__main__":
