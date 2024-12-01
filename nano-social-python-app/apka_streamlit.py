@@ -19,35 +19,48 @@ def display_comments(comments: dict, level: int = 0) -> None:
 
 st.set_page_config(page_title="Aplikacja z zakładkami", layout="wide")
 
-tab1, tab2 = st.tabs(["Zakładka 1", "Zakładka 2"])
+tab1, tab2 = st.tabs(["Przeglądanie publikacji", "Dodawanie publikacji"])
 
 if "uri_list" not in st.session_state:
     st.session_state.uri_list = nano_pubs.get_random_npubs(10, True)
 
+if "show_custom_uri_input" not in st.session_state:
+    st.session_state.show_custom_uri_input = False
+
 with tab1:
     if st.button("Losuj nowe URI"):
         st.session_state.uri_list = nano_pubs.get_random_npubs(10, True)
+        st.session_state.show_custom_uri_input = False
 
-    regex = r"/(RA[\w\-]+)(?:#|$)"
-    items = []
-    for uri in st.session_state.uri_list:
-        uri_id = uri.split("/")[-1].split("#")[0]
-        if bool(re.search(regex, uri)):
-            uri = f"https://w3id.org/np/{uri_id}"
-            items.append(uri)
+    if st.button("Własny URI"):
+        st.session_state.show_custom_uri_input = True
 
-    # Układ z kolumnami
-    col1, col2 = st.columns([1, 2])  # Proporcje szerokości kolumn
+    # Publikacje / Komentarze
+    col1, col2 = st.columns([1, 1])
 
-    # Lista URI w lewej kolumnie
     with col1:
-        st.header("Publikacje")
-        selected_uri = st.session_state.get("selected_uri", None)
-        for item in items:
-            if st.button(item, key=item):
-                st.session_state.selected_uri = item
+        st.header("Nano-publikacje publikacje")
+        if st.session_state.show_custom_uri_input:
+            user_input = st.text_input("Wprowadź własne URI nano-publikacji:")
+            if st.button("Sprawdź nano-publikację"):
+                if user_input:
+                    st.session_state.uri_list.append(user_input)
+                    st.session_state.selected_uri = user_input
+                    st.success("Załadowano komentarze!")
+        else:
+            regex = r"/(RA[\w\-]+)(?:#|$)"
+            items = []
+            for uri in st.session_state.uri_list:
+                uri_id = uri.split("/")[-1].split("#")[0]
+                if bool(re.search(regex, uri)):
+                    uri = f"https://w3id.org/np/{uri_id}"
+                    items.append(uri)
 
-    # Komentarze w prawej kolumnie
+            selected_uri = st.session_state.get("selected_uri", None)
+            for item in items:
+                if st.button(item, key=item):
+                    st.session_state.selected_uri = item
+
     with col2:
         st.header("Komentarze")
         selected_uri = st.session_state.get("selected_uri", None)
