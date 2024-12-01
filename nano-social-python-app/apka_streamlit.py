@@ -14,6 +14,8 @@ def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
         line_prefix = prefix + ("└── " if is_last else "├── ")
         new_prefix = prefix + ("    " if is_last else "│   ")
 
+        st.markdown(f"{line_prefix} **{comment['author']}** napisał/a {comment['date']}", unsafe_allow_html=True)
+        st.markdown(f"{line_prefix} {comment['text']}", unsafe_allow_html=True)
         st.markdown(f"{line_prefix} {comment['uri']}", unsafe_allow_html=True)
 
         button_prefix = new_prefix + ("│   " if not is_last else "    ")
