@@ -23,7 +23,8 @@ class NanoPubs:
         print("get_random_npubs")
 
         query = """
-        SELECT ?publication ?p ?o WHERE {
+        SELECT distinct ?publication ?p ?o WHERE {
+            ?publication <https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate> <https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw> .
             ?publication ?p ?o .
         }
         ORDER BY RAND()
@@ -115,6 +116,27 @@ class NanoPubs:
             tree.append(the_comment)
 
         return tree
+
+
+    def get_npub_text(self,
+                      npub_id: str | None = None,
+                      npub_uri: str | None = None) -> str:
+
+        if npub_uri is None:
+            npub_uri = f"https://w3id.org/np/{npub_id}"
+
+        query = f"""
+        SELECT?o WHERE {{
+            <{npub_uri}#assertion> <http://www.w3.org/2000/01/rdf-schema#label> ?o .
+        }}
+        """
+
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.queryAndConvert()
+        results = results["results"]["bindings"]
+
+        return results
 
 
 if __name__ == "__main__":

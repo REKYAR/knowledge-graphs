@@ -65,6 +65,14 @@ with tab1:
         st.header("Komentarze")
         selected_uri = st.session_state.get("selected_uri", None)
         if selected_uri:
+            text = nano_pubs.get_npub_text(npub_uri=selected_uri)
+            print(text)
+            try:
+                text = text[0]["o"]["value"]
+            except IndexError:
+                text = "No text found."
+            #print(text)
+            st.write(f"{text}")
             comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
             st.write(f"Wybrana nano-publikacja: **{selected_uri}**")
             if comments:
