@@ -9,6 +9,8 @@ from constans import TEXT_NOT_FOUND
 
 nano_pubs = NanoPubs()
 
+# print(download_npub_comment("RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI"))
+
 
 def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
     for i, comment in enumerate(comments):
