@@ -9,8 +9,6 @@ from constans import TEXT_NOT_FOUND
 
 nano_pubs = NanoPubs()
 
-# print(download_npub_comment("RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI"))
-
 
 def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
     for i, comment in enumerate(comments):
@@ -18,8 +16,7 @@ def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
         line_prefix = prefix + ("└── " if is_last else "├── ")
         new_prefix = prefix + ("    " if is_last else "│   ")
 
-        date_obj = datetime.strptime(comment["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        date = date_obj.strftime("%Y-%m-%d %H:%M")
+        date = parse_date(comment["date"])
 
         st.markdown(f"{line_prefix} {date} - **[Użytkownik]({comment['author']})** napisał: [{comment['text']}]({comment['uri']})", unsafe_allow_html=True)
 
@@ -41,6 +38,12 @@ def comment_form(parent_uri: str, level: int) -> None:
 
 def XYZ(uri: str) -> None:
     st.success(f"Dodano komentarz do {uri}")
+
+
+def parse_date(date: str) -> str:
+    date_obj = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    date = date_obj.strftime("%Y-%m-%d %H:%M")
+    return date
 
 
 st.set_page_config(page_title="Nano Publications", layout="wide")
@@ -94,7 +97,7 @@ with col2:
     selected_uri = st.session_state.get("selected_uri", None)
     if selected_uri:
         author = nano_pubs.get_author(npub_uri=selected_uri)
-        date = nano_pubs.get_date(npub_uri=selected_uri)
+        date = parse_date(nano_pubs.get_date(npub_uri=selected_uri))
         text = nano_pubs.get_npub_text(npub_uri=selected_uri)
         if text == selected_uri:
             text = "No text found!"
