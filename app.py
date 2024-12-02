@@ -18,10 +18,15 @@ def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
 
         date = parse_date(comment["date"])
 
-        st.markdown(f"{line_prefix} {date} - **[Użytkownik]({comment['author']})** napisał: [{comment['text']}]({comment['uri']})", unsafe_allow_html=True)
+        msg = f"{line_prefix} {date} - **[Użytkownik]({comment['author']})**"
+        msg += f" napisał: [{comment['text']}]({comment['uri']})"
+        st.markdown(msg, unsafe_allow_html=True)
 
         button_prefix = new_prefix + ("│   " if not is_last else "    ")
-        st.markdown(f"{button_prefix}<button style='margin-left: 30px; font-size: 15px;'>{'Dodaj odpowiedź'}</button>", unsafe_allow_html=True)
+
+        msg = f"{button_prefix}<button style='margin-left: 30px; font-size: "
+        msg += f"15px;'>{'Dodaj odpowiedź'}</button>"
+        st.markdown(msg, unsafe_allow_html=True)
 
         if comment.get("comments"):
             display_comments(comment["comments"], level + 1, new_prefix)
@@ -113,5 +118,8 @@ with col2:
         else:
             st.write("Brak komentarzy.")
 
-    if selected_uri and st.button("Dodaj komentarz do wybranej nano-publikacji"):
+    if (
+        selected_uri and
+        st.button("Dodaj komentarz do wybranej nano-publikacji")
+    ):
         XYZ(selected_uri)

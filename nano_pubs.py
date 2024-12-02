@@ -6,7 +6,7 @@ import requests
 from constans import TEXT_NOT_FOUND, AUTHOR_NOT_FOUNT, DATE_NOT_FOUND
 
 
-def download_npub_comment(npub_uri: str):
+def download_npub_comment(npub_uri: str) -> str | None:
     page_url = f"https://nanodash.knowledgepixels.com/explore?2&id={npub_uri}"
     try:
         response = requests.get(page_url)
@@ -247,7 +247,8 @@ if __name__ == "__main__":
     # for i in nano_pubs.get_user_npubs("0009-0009-6638-993X", True):
     #     print(i)
 
-    # for i in nano_pubs.get_npub_comments("RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU")["results"]["bindings"]:
+    # user_id = "RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU"
+    # for i in nano_pubs.get_npub_comments(user_id)["results"]["bindings"]:
     #     print(i)
 
-    # print(nano_pubs.get_npub_comments_tree("RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU"))
+    # print(nano_pubs.get_npub_comments_tree(user_id))
