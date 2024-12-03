@@ -2,6 +2,7 @@ from datetime import datetime
 import re
 
 import streamlit as st
+import webbrowser
 
 from nano_pubs import NanoPubs
 from constans import TEXT_NOT_FOUND
@@ -10,26 +11,44 @@ from constans import TEXT_NOT_FOUND
 nano_pubs = NanoPubs()
 
 
-def display_comments(comments: list, level: int = 0, prefix: str = "") -> None:
+def display_comments(
+        comments: list,
+        level: int = 0, is_last_list: list = None, prefix: str = ""
+        ) -> None:
+
+    if is_last_list is None:
+        is_last_list = []
+
     for i, comment in enumerate(comments):
         is_last = (i == len(comments) - 1)
-        line_prefix = prefix + ("└── " if is_last else "├── ")
-        new_prefix = prefix + ("    " if is_last else "│   ")
+
+        line_prefix = ""
+        for last in is_last_list:
+            line_prefix += "    " if last else "│   "
+        line_prefix += "└── " if is_last else "├── "
+
+        new_is_last_list = is_last_list + [is_last]
 
         date = parse_date(comment["date"])
-
         msg = f"{line_prefix} {date} - **[USER]({comment['author']})**"
         msg += f" wrote: [{comment['text']}]({comment['uri']})"
         st.markdown(msg, unsafe_allow_html=True)
 
-        button_prefix = new_prefix + ("│   " if not is_last else "    ")
-
-        msg = f"{button_prefix}<button style='margin-left: 30px; font-size: "
-        msg += f"15px;'>{'Add reply'}</button>"
-        st.markdown(msg, unsafe_allow_html=True)
+        button_prefix = ""
+        for last in is_last_list:
+            button_prefix += "    " if last else "│   "
+        button_prefix += "    "
+        with st.container():
+            cols = st.columns([1, 20])
+            cols[0].markdown(button_prefix, unsafe_allow_html=True)
+            button_key = f"add_reply_{comment['uri']}"
+            if cols[1].button("Add reply", key=button_key):
+                print("NEW COMM pressed:", comment["uri"])
+                url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={comment['uri']}"
+                webbrowser.open(url)
 
         if comment.get("comments"):
-            display_comments(comment["comments"], level + 1, new_prefix)
+            display_comments(comment["comments"], level + 1, new_is_last_list)
 
 
 def comment_form(parent_uri: str, level: int) -> None:
@@ -39,10 +58,6 @@ def comment_form(parent_uri: str, level: int) -> None:
 
         if submitted and new_comment.strip():
             st.success("Reply added")
-
-
-def XYZ(uri: str) -> None:
-    st.success(f"Dodano komentarz do {uri}")
 
 
 def parse_date(date: str) -> str:
@@ -66,19 +81,22 @@ if st.button("Random URI"):
 if st.button("Own URI"):
     st.session_state.show_custom_uri_input = True
 
-# Publikacje / Komentarze
+# Publications / Comments
 col1, col2 = st.columns([1, 2])
 
-with col1:
+
+with col1:  # Publications
     st.header("Nano-publications publications")
-    if st.session_state.show_custom_uri_input:
+
+    if st.session_state.show_custom_uri_input:  # Custom nano-pub
         user_input = st.text_input("Enter own nanopub URI:")
-        if st.button("Sprawdź nano-publikację"):
+        if st.button("Load nano-publication"):
             if user_input:
                 st.session_state.uri_list.append(user_input)
                 st.session_state.selected_uri = user_input
-                st.success("Comments loaded")
-    else:
+                st.success("Loading nano-publication ...")
+
+    else:  # Random nano-pub
         regex = r"/(RA[\w\-]+)(?:#|$)"
         items = []
         for uri in st.session_state.uri_list:
@@ -97,7 +115,8 @@ with col1:
             if st.button(button_text, key=uri):
                 st.session_state.selected_uri = uri
 
-with col2:
+
+with col2:  # Comments
     st.header("Comments")
     selected_uri = st.session_state.get("selected_uri", None)
     if selected_uri:
@@ -118,8 +137,7 @@ with col2:
         else:
             st.write("No comments.")
 
-    if (
-        selected_uri and
-        st.button("Add comment to selected nanopub")
-    ):
-        XYZ(selected_uri)
+    if selected_uri and st.button("Add comment to selected nanopub"):
+        print("NEW NPUB pressed", selected_uri)
+        url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
+        webbrowser.open(url)
