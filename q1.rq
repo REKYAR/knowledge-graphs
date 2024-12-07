@@ -94,3 +94,16 @@ SELECT?o WHERE {
 SELECT?o WHERE {
             <https://w3id.org/np/RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI#assertion> <http://www.w3.org/2000/01/rdf-schema#label> ?o .
         }
+
+
+
+
+
+
+THIS ONE PULLS COMMENT TEXT
+SELECT ?comment WHERE {
+  GRAPH ?commenter {
+    <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> <http://www.w3.org/2000/01/rdf-schema#comment> ?comment .
+  }
+  <https://w3id.org/np/RAHpEe2rJPii7hRvkv6A3GS2PF2F3MoAPAgDRz8v1L5Yg> <http://www.nanopub.org/nschema#hasAssertion> ?commenter .
+}
