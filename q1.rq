@@ -103,7 +103,7 @@ SELECT?o WHERE {
 THIS ONE PULLS COMMENT TEXT
 SELECT ?comment WHERE {
   GRAPH ?commenter {
-    <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> <http://www.w3.org/2000/01/rdf-schema#comment> ?comment .
+    <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> <http://www.w3.org/2000/01/rdf-schema#comment> ?comment . //commented on uri
   }
-  <https://w3id.org/np/RAHpEe2rJPii7hRvkv6A3GS2PF2F3MoAPAgDRz8v1L5Yg> <http://www.nanopub.org/nschema#hasAssertion> ?commenter .
+  <https://w3id.org/np/RAHpEe2rJPii7hRvkv6A3GS2PF2F3MoAPAgDRz8v1L5Yg> <http://www.nanopub.org/nschema#hasAssertion> ?commenter . //comment uri
 }
