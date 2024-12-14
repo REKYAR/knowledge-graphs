@@ -49,6 +49,21 @@ class NanoPubs:
 
         self.sparql = SPARQLWrapper(self.endpoint)
 
+    def prepare_comment_query(
+            self,
+            commented_uri: str,
+            comment_uri: str
+            ) -> str:
+
+        return f"""
+            SELECT ?comment WHERE {{
+            GRAPH ?commenter {{
+                <{commented_uri}> <http://www.w3.org/2000/01/rdf-schema#comment> ?comment .
+            }}
+            <{comment_uri}> <http://www.nanopub.org/nschema#hasAssertion> ?commenter .
+            }}
+        """
+
     def get_random_npubs(
             self,
             n: int = 10,
@@ -57,8 +72,6 @@ class NanoPubs:
 
         assert type(n) is int
         assert n > 0
-
-        print("get_random_npubs")
 
         query = """
         SELECT distinct ?publication ?p ?o WHERE {
@@ -157,7 +170,7 @@ class NanoPubs:
 
         return results[0]["o"]["value"]
 
-    def get_npub_comments(
+    def get_npub_comments_uris(
             self,
             npub_id: str | None = None,
             npub_uri: str | None = None,
@@ -180,7 +193,7 @@ class NanoPubs:
 
         if simple:
             results = results["results"]["bindings"]
-            return [e["a"]["value"] for e in results]
+            return [e["referring"]["value"] for e in results]
         else:
             return results
 
@@ -193,17 +206,19 @@ class NanoPubs:
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
 
+        comments_uris = self.get_npub_comments_uris(
+            npub_uri=npub_uri, simple=True
+            )
+
         tree = []
-        comments = self.get_npub_comments(npub_uri=npub_uri)
-        for comment in comments["results"]["bindings"]:
-            uri = comment["referring"]["value"]
-            text = download_npub_comment(uri.split("/")[-1].split("#")[0])
+        for comment_uri in comments_uris:
+            text = self.get_npub_comment_text(npub_uri, comment_uri)
             the_comment = {
-                "uri": uri,
+                "uri": comment_uri,
                 "text": text,
-                "author": self.get_author(npub_uri=uri),
-                "date": self.get_date(npub_uri=uri),
-                "comments": self.get_npub_comments_tree(npub_uri=uri)
+                "author": self.get_author(npub_uri=comment_uri),
+                "date": self.get_date(npub_uri=comment_uri),
+                "comments": self.get_npub_comments_tree(npub_uri=comment_uri)
             }
             tree.append(the_comment)
 
@@ -237,18 +252,14 @@ class NanoPubs:
 
             return results[0]["o"]["value"]
 
+    def get_npub_comment_text(self, npub_uri: str, comment_uri: str) -> str:
+        query = self.prepare_comment_query(npub_uri, comment_uri)
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.queryAndConvert()
 
-if __name__ == "__main__":
-    nano_pubs = NanoPubs()
+        comment_content = results["results"]["bindings"]
+        if len(comment_content) == 0:
+            return []
 
-    for i in nano_pubs.get_random_npubs(10, True):
-        print(i)
-
-    # for i in nano_pubs.get_user_npubs("0009-0009-6638-993X", True):
-    #     print(i)
-
-    # user_id = "RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU"
-    # for i in nano_pubs.get_npub_comments(user_id)["results"]["bindings"]:
-    #     print(i)
-
-    # print(nano_pubs.get_npub_comments_tree(user_id))
+        return comment_content[0]["comment"]["value"]
