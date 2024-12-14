@@ -107,3 +107,39 @@ SELECT ?comment WHERE {
   }
   <https://w3id.org/np/RAHpEe2rJPii7hRvkv6A3GS2PF2F3MoAPAgDRz8v1L5Yg> <http://www.nanopub.org/nschema#hasAssertion> ?commenter . //comment uri
 }
+
+THIS ONE SELECTS A REACTION
+SELECT ?reaction WHERE {
+  GRAPH ?commenter {
+    <https://w3id.org/np/RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI> <http://rdfs.org/sioc/ns#has_reply> ?reaction .
+  }
+  <https://w3id.org/np/RA2RCJQkEf48zFEURNsQPcGxANX18n4U3VDGIpDjBavlo> <http://www.nanopub.org/nschema#hasAssertion> ?commenter .
+}
+
+
+//THIS ONE COUNTS different reactions on the comment
+SELECT ?reaction (COUNT(?reaction) as ?count) WHERE {
+  GRAPH ?commenter {
+    ?comment <http://rdfs.org/sioc/ns#has_reply> ?reaction .
+  }
+  VALUES ?comment {
+    <https://w3id.org/np/RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI>
+  }
+}
+GROUP BY ?reaction
+ORDER BY DESC(?count)
+
+
+//THIS ONE GIVEN A REACTION AND URI COUNTS THE NUMBER OF TIMES A USER REACTED TO THE URI WITH THIS REACTION
+SELECT ?user (COUNT(?reaction) as ?reactionCount) WHERE {
+  GRAPH ?commenter {
+    ?comment <http://rdfs.org/sioc/ns#has_reply> ?reaction .
+  }
+  ?np <http://www.nanopub.org/nschema#hasAssertion> ?commenter ;
+     <http://purl.org/dc/terms/creator> ?user .
+  VALUES (?comment ?reaction) {
+    (<https://w3id.org/np/RAigK1MVSCgqvtyDSnoAWRaGYdocdXr36bqb9wrxqWqSI> "😀"^^<http://www.w3.org/2001/XMLSchema#string>) //comment uri & the reaction we are looking for
+  }
+}
+GROUP BY ?user
+ORDER BY DESC(?reactionCount)
