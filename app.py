@@ -1,6 +1,7 @@
 from datetime import datetime
 import re
 
+import streamlit.components.v1 as components
 import streamlit as st
 import webbrowser
 
@@ -33,6 +34,27 @@ def display_comments(
         msg = f"{line_prefix} {date} - **[USER]({comment['author']})**"
         msg += f" wrote: [{comment['text']}]({comment['uri']})"
         st.markdown(msg, unsafe_allow_html=True)
+
+        if len(comment["reactions"]) != 0:
+            sorted_reactions = sorted(
+                comment["reactions"].items(),
+                key=lambda item: item[1],
+                reverse=True
+            )
+            html_code = '<div style="display: flex; gap: 10px; flex-wrap: wrap;">'
+            for reaction in sorted_reactions:
+                emoji = reaction[0]
+                count = reaction[1]
+                html_code += f"""
+                    <div style="border: 1px solid #ddd; border-radius: 5px; 
+                                padding: 5px 10px; text-align: center;">
+                        <span style="font-size: 20px;">{emoji}</span><br>
+                        <span style="font-size: 14px; color: #555;">{count}</span>
+                    </div>
+                """
+            html_code += '</div>'
+
+            components.html(html_code, height=70)
 
         button_prefix = ""
         for last in is_last_list:

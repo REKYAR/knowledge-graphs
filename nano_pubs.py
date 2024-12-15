@@ -218,7 +218,8 @@ class NanoPubs:
                 "text": text,
                 "author": self.get_author(npub_uri=comment_uri),
                 "date": self.get_date(npub_uri=comment_uri),
-                "comments": self.get_npub_comments_tree(npub_uri=comment_uri)
+                "comments": self.get_npub_comments_tree(npub_uri=comment_uri),
+                "reactions": self.get_npub_comment_reactions(comment_uri)
             }
             tree.append(the_comment)
 
@@ -263,3 +264,25 @@ class NanoPubs:
             return []
 
         return comment_content[0]["comment"]["value"]
+
+    def get_npub_comment_reactions(self, npub_uri: str) -> dict[str, int]:
+        query = f"""
+            SELECT ?reaction (COUNT(?reaction) as ?count) WHERE {{
+            GRAPH ?commenter {{
+                ?comment <http://rdfs.org/sioc/ns#has_reply> ?reaction .
+            }}
+            VALUES ?comment {{
+                <{npub_uri}>
+            }}
+            }}
+            GROUP BY ?reaction
+            ORDER BY DESC(?count)
+        """
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.queryAndConvert()
+
+        return {
+            reaction["reaction"]["value"]: reaction["count"]["value"]
+            for reaction in results["results"]["bindings"]
+        }
