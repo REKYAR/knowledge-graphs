@@ -80,10 +80,10 @@ def display_comments(comments: list, level: int = 0) -> None:
         nonlocal reactions_count
 
         for comment in comments:
-            date = parse_date(comment["date"])
-            text = comment["text"] if comment["text"] else "No text found"
-            author_link = comment["author"]
-            author_nick = nicks.get_nick(author_link).title()
+            date = comment.get("date", "Unknown date")
+            text = comment.get("text", "No text found")
+            author_link = comment.get("author", "#")
+            author_nick = nicks.get_nick(author_link).title() if author_link else "Unknown Author"
             comments_count += 1
 
             html_code += f"""
@@ -99,13 +99,8 @@ def display_comments(comments: list, level: int = 0) -> None:
             if comment.get("reactions"):
                 reactions_count += 1
                 html_code += '<div style="display: flex; gap: 5px; margin-top: 5px;">'
-                sorted_comments = sorted(
-                    comment["reactions"].items(),
-                    key=lambda item: int(item[1]),
-                    reverse=True
-                    )
-
-                for emoji, count in sorted_comments:
+                sorted_reactions = sorted(comment["reactions"].items(), key=lambda item: int(item[1]), reverse=True)
+                for emoji, count in sorted_reactions:
                     html_code += f"""
                     <div style="border: 1px solid #ddd; border-radius: 5px;
                                 padding: 2px 5px; text-align: center;">
@@ -113,6 +108,15 @@ def display_comments(comments: list, level: int = 0) -> None:
                     </div>
                     """
                 html_code += '</div>'
+
+            comment_uri = comment.get("uri", "")
+            if comment_uri:
+                reply_url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={comment_uri}"
+                html_code += f"""
+                <div style="margin-top: 10px;">
+                    <button onclick="window.open('{reply_url}', '_blank')">Reply to this comment</button>
+                </div>
+                """
 
             if comment.get("comments") and len(comment["comments"]) > 0:
                 build_html(comment["comments"], level + 1)
@@ -122,7 +126,7 @@ def display_comments(comments: list, level: int = 0) -> None:
     build_html(comments, level)
     html_code += '</div>'
 
-    components.html(html_code, height=comments_count*60+reactions_count*60)
+    components.html(html_code, height=(comments_count + reactions_count)*80)
 
 
 def comment_form(parent_uri: str, level: int) -> None:
