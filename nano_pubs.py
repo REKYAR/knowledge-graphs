@@ -180,13 +180,6 @@ class NanoPubs:
         if npub_uri is None:
             npub_uri = f"https://w3id.org/np/{npub_id}"
 
-        # query = f"""
-        # SELECT DISTINCT ?referring ?target WHERE {{
-        #     VALUES ?target {{ <{npub_uri}> }}
-        #     ?referring <http://purl.org/nanopub/admin/refersToNanopub> ?target .
-        # }}
-        # """
-
         query = f"""
         SELECT DISTINCT ?referring ?target WHERE {{
             VALUES ?target {{ <{npub_uri}> }}
