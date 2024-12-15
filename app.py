@@ -6,71 +6,118 @@ import streamlit as st
 import webbrowser
 
 from nano_pubs import NanoPubs
-from constans import TEXT_NOT_FOUND
-
+from constans import TEXT_NOT_FOUND, DATE_NOT_FOUND
 
 nano_pubs = NanoPubs()
 
+phonetic_alphabet = [
+    "ALFA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT",
+    "GOLF", "HOTEL", "INDIA", "JULIETT", "KILO", "LIMA",
+    "MIKE", "NOVEMBER", "OSCAR", "PAPA", "QUEBEC", "ROMEO",
+    "SIERRA", "TANGO", "UNIFORM", "VICTOR", "WHISKEY", "X-RAY",
+    "YANKEE", "ZULU"
+]
 
-def display_comments(
-        comments: list,
-        level: int = 0, is_last_list: list = None, prefix: str = ""
-        ) -> None:
 
-    if is_last_list is None:
-        is_last_list = []
+class NickGenerator:
+    def __init__(self, phonetic_alphabet):
+        self.phonetic_alphabet = phonetic_alphabet
+        self.nicks_assigned = {}
+        self.used_nicks = set()
+        self.counter = 0
+        self.next_index = 0
 
-    for i, comment in enumerate(comments):
-        is_last = (i == len(comments) - 1)
+    def get_nick(self, user_uri):
+        if user_uri in self.nicks_assigned:
+            return self.nicks_assigned[user_uri]
 
-        line_prefix = ""
-        for last in is_last_list:
-            line_prefix += "    " if last else "│   "
-        line_prefix += "└── " if is_last else "├── "
+        while True:
+            base_nick = self.phonetic_alphabet[self.next_index]
+            nick = f"{base_nick}{self.counter}" if base_nick in self.used_nicks else base_nick
 
-        new_is_last_list = is_last_list + [is_last]
+            self.next_index = (self.next_index + 1) % len(self.phonetic_alphabet)
+            if self.next_index == 0:
+                self.counter += 1
 
-        date = parse_date(comment["date"])
-        msg = f"{line_prefix} {date} - **[USER]({comment['author']})**"
-        msg += f" wrote: [{comment['text']}]({comment['uri']})"
-        st.markdown(msg, unsafe_allow_html=True)
+            if nick not in self.used_nicks:
+                self.used_nicks.add(nick)
+                self.nicks_assigned[user_uri] = nick
+                return nick
 
-        if len(comment["reactions"]) != 0:
-            sorted_reactions = sorted(
-                comment["reactions"].items(),
-                key=lambda item: item[1],
-                reverse=True
-            )
-            html_code = '<div style="display: flex; gap: 10px; flex-wrap: wrap;">'
-            for reaction in sorted_reactions:
-                emoji = reaction[0]
-                count = reaction[1]
-                html_code += f"""
-                    <div style="border: 1px solid #ddd; border-radius: 5px; 
-                                padding: 5px 10px; text-align: center;">
-                        <span style="font-size: 20px;">{emoji}</span><br>
-                        <span style="font-size: 14px; color: #555;">{count}</span>
+
+nicks = NickGenerator(phonetic_alphabet)
+
+
+def extract_authors(comments) -> list[str]:
+    authors = []
+
+    def traverse_comments(comments):
+        for comment in comments:
+            authors.append(comment["author"])
+
+            if "comments" in comment and comment["comments"]:
+                traverse_comments(comment["comments"])
+
+    traverse_comments(comments)
+    return list(set(authors))
+
+
+def display_comments(comments: list, level: int = 0) -> None:
+    html_code = '<div style="font-family: Arial, sans-serif;">'
+    comments_count = 0
+    reactions_count = 0
+
+    authors = extract_authors(comments)
+
+    def build_html(comments: list, level: int):
+        nonlocal html_code
+        nonlocal comments_count
+        nonlocal reactions_count
+
+        for comment in comments:
+            date = parse_date(comment["date"])
+            text = comment["text"] if comment["text"] else "No text found"
+            author_link = comment["author"]
+            author_nick = nicks.get_nick(author_link).title()
+            comments_count += 1
+
+            html_code += f"""
+            <div style="margin-left: {level * 20}px; border-left: 2px solid #ccc;
+                        padding-left: 10px; margin-top: 10px;">
+                <div>
+                    <strong><a href="{author_link}" style="text-decoration: none; color: #0078D4;" target="_blank">User {author_nick}</a></strong>
+                    <span style="font-size: 12px; color: #777;">({date})</span>
+                </div>
+                <div style="margin-top: 5px;">{text}</div>
+            """
+
+            if comment.get("reactions"):
+                reactions_count += 1
+                html_code += '<div style="display: flex; gap: 5px; margin-top: 5px;">'
+                sorted_comments = sorted(
+                    comment["reactions"].items(),
+                    key=lambda item: int(item[1]),
+                    reverse=True
+                    )
+
+                for emoji, count in sorted_comments:
+                    html_code += f"""
+                    <div style="border: 1px solid #ddd; border-radius: 5px;
+                                padding: 2px 5px; text-align: center;">
+                        <span style="font-size: 18px;">{emoji}</span> {count}
                     </div>
-                """
-            html_code += '</div>'
+                    """
+                html_code += '</div>'
 
-            components.html(html_code, height=70)
+            if comment.get("comments") and len(comment["comments"]) > 0:
+                build_html(comment["comments"], level + 1)
 
-        button_prefix = ""
-        for last in is_last_list:
-            button_prefix += "    " if last else "│   "
-        button_prefix += "    "
-        with st.container():
-            cols = st.columns([1, 20])
-            cols[0].markdown(button_prefix, unsafe_allow_html=True)
-            button_key = f"add_reply_{comment['uri']}"
-            if cols[1].button("Add reply", key=button_key):
-                print("NEW COMM pressed:", comment["uri"])
-                url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={comment['uri']}"
-                webbrowser.open(url)
+            html_code += "</div>"
 
-        if comment.get("comments"):
-            display_comments(comment["comments"], level + 1, new_is_last_list)
+    build_html(comments, level)
+    html_code += '</div>'
+
+    components.html(html_code, height=comments_count*60+reactions_count*60)
 
 
 def comment_form(parent_uri: str, level: int) -> None:
@@ -143,7 +190,11 @@ with col2:  # Comments
     selected_uri = st.session_state.get("selected_uri", None)
     if selected_uri:
         author = nano_pubs.get_author(npub_uri=selected_uri)
-        date = parse_date(nano_pubs.get_date(npub_uri=selected_uri))
+
+        date = nano_pubs.get_date(npub_uri=selected_uri)
+        if date != DATE_NOT_FOUND:
+            date = parse_date(date)
+
         text = nano_pubs.get_npub_text(npub_uri=selected_uri)
         if text == selected_uri:
             text = "No text found!"
