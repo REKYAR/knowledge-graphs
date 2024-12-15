@@ -184,6 +184,10 @@ class NanoPubs:
         SELECT DISTINCT ?referring ?target WHERE {{
             VALUES ?target {{ <{npub_uri}> }}
             ?referring <http://purl.org/nanopub/admin/refersToNanopub> ?target .
+            ?referring <http://www.nanopub.org/nschema#hasAssertion> ?assertion .
+            GRAPH ?assertion {{
+                ?target <http://www.w3.org/2000/01/rdf-schema#comment> ?commentText .
+            }}
         }}
         """
 

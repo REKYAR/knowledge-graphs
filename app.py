@@ -33,9 +33,16 @@ class NickGenerator:
 
         while True:
             base_nick = self.phonetic_alphabet[self.next_index]
-            nick = f"{base_nick}{self.counter}" if base_nick in self.used_nicks else base_nick
 
-            self.next_index = (self.next_index + 1) % len(self.phonetic_alphabet)
+            if base_nick in self.used_nicks:
+                nick = f"{base_nick}{self.counter}"
+            else:
+                nick = base_nick
+
+            self.next_index = (
+                (self.next_index + 1) % len(self.phonetic_alphabet)
+            )
+
             if self.next_index == 0:
                 self.counter += 1
 
@@ -66,8 +73,6 @@ def display_comments(comments: list, level: int = 0) -> None:
     html_code = '<div style="font-family: Arial, sans-serif;">'
     comments_count = 0
     reactions_count = 0
-
-    authors = extract_authors(comments)
 
     def build_html(comments: list, level: int):
         nonlocal html_code
@@ -137,35 +142,24 @@ def parse_date(date: str) -> str:
 
 st.set_page_config(page_title="Nano Publications", layout="wide")
 
-if "uri_list" not in st.session_state:
-    st.session_state.uri_list = nano_pubs.get_random_npubs(10, True)
+tabs = st.tabs(["Random URI", "Own URI"])
 
-if "show_custom_uri_input" not in st.session_state:
-    st.session_state.show_custom_uri_input = False
+# Inicjalizacja stanów dla obu zakładek
+if "random_selected_uri" not in st.session_state:
+    st.session_state.random_selected_uri = None
 
-if st.button("Random URI"):
-    st.session_state.uri_list = nano_pubs.get_random_npubs(10, True)
-    st.session_state.show_custom_uri_input = False
+if "own_selected_uri" not in st.session_state:
+    st.session_state.own_selected_uri = None
 
-if st.button("Own URI"):
-    st.session_state.show_custom_uri_input = True
+with tabs[0]:  # Random URI
+    col1, col2 = st.columns([1, 2])
 
-# Publications / Comments
-col1, col2 = st.columns([1, 2])
+    with col1:  # Publications
+        st.header("Random Nano-publications")
 
+        if "uri_list" not in st.session_state:
+            st.session_state.uri_list = nano_pubs.get_random_npubs(10, True)
 
-with col1:  # Publications
-    st.header("Nano-publications publications")
-
-    if st.session_state.show_custom_uri_input:  # Custom nano-pub
-        user_input = st.text_input("Enter own nanopub URI:")
-        if st.button("Load nano-publication"):
-            if user_input:
-                st.session_state.uri_list.append(user_input)
-                st.session_state.selected_uri = user_input
-                st.success("Loading nano-publication ...")
-
-    else:  # Random nano-pub
         regex = r"/(RA[\w\-]+)(?:#|$)"
         items = []
         for uri in st.session_state.uri_list:
@@ -174,43 +168,79 @@ with col1:  # Publications
             if bool(re.search(regex, uri)) and new_uri not in items:
                 items.append(new_uri)
 
-        selected_uri = st.session_state.get("selected_uri", None)
-
         for uri in items:
             button_text = nano_pubs.get_npub_text(npub_uri=uri, simple=True)
             if button_text == TEXT_NOT_FOUND:
                 button_text = uri
 
-            if st.button(button_text, key=uri):
-                st.session_state.selected_uri = uri
+            if st.button(button_text, key=f"random_{uri}"):
+                st.session_state.random_selected_uri = uri
 
+    with col2:  # Comments
+        st.header("Comments (Selected Random URI)")
+        selected_uri = st.session_state.random_selected_uri
+        if selected_uri:
+            author = nano_pubs.get_author(npub_uri=selected_uri)
+            date = nano_pubs.get_date(npub_uri=selected_uri)
+            if date != DATE_NOT_FOUND:
+                date = parse_date(date)
 
-with col2:  # Comments
-    st.header("Comments")
-    selected_uri = st.session_state.get("selected_uri", None)
-    if selected_uri:
-        author = nano_pubs.get_author(npub_uri=selected_uri)
+            text = nano_pubs.get_npub_text(npub_uri=selected_uri)
+            if text == selected_uri:
+                text = "No text found!"
 
-        date = nano_pubs.get_date(npub_uri=selected_uri)
-        if date != DATE_NOT_FOUND:
-            date = parse_date(date)
+            st.write(f"**Selected Nanopub:** {selected_uri}")
+            st.write(f"**Author:** {author}")
+            st.write(f"**Date:** {date}")
+            st.write(f"**Text:** {text}")
 
-        text = nano_pubs.get_npub_text(npub_uri=selected_uri)
-        if text == selected_uri:
-            text = "No text found!"
+            comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
+            if comments:
+                display_comments(comments)
+            else:
+                st.write("No comments.")
 
-        st.write(f"**Selected Nanopub:** {selected_uri}")
-        st.write(f"**Author:** {author}")
-        st.write(f"**Date:** {date}")
-        st.write(f"**Text:** {text}")
+        if selected_uri and st.button("Add comment to selected nanopub (Random)"):
+            url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
+            webbrowser.open(url)
 
-        comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
-        if comments:
-            display_comments(comments)
-        else:
-            st.write("No comments.")
+with tabs[1]:  # Own URI
+    col1, col2 = st.columns([1, 2])
 
-    if selected_uri and st.button("Add comment to selected nanopub"):
-        print("NEW NPUB pressed", selected_uri)
-        url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
-        webbrowser.open(url)
+    with col1:  # Publications
+        st.header("Own URI Nano-publication")
+
+        user_input = st.text_input("Enter own nanopub URI:")
+        if st.button("Load nano-publication"):
+            if user_input:
+                st.session_state.uri_list.append(user_input)
+                st.session_state.own_selected_uri = user_input
+                st.success("Loading nano-publication ...")
+
+    with col2:  # Comments
+        st.header("Comments (Own URI)")
+        selected_uri = st.session_state.own_selected_uri
+        if selected_uri:
+            author = nano_pubs.get_author(npub_uri=selected_uri)
+            date = nano_pubs.get_date(npub_uri=selected_uri)
+            if date != DATE_NOT_FOUND:
+                date = parse_date(date)
+
+            text = nano_pubs.get_npub_text(npub_uri=selected_uri)
+            if text == selected_uri:
+                text = "No text found!"
+
+            st.write(f"**Selected Nanopub:** {selected_uri}")
+            st.write(f"**Author:** {author}")
+            st.write(f"**Date:** {date}")
+            st.write(f"**Text:** {text}")
+
+            comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
+            if comments:
+                display_comments(comments)
+            else:
+                st.write("No comments.")
+
+        if selected_uri and st.button("Add comment to selected nanopub (Own URI)"):
+            url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
+            webbrowser.open(url)
