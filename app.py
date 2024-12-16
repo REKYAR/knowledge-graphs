@@ -148,7 +148,6 @@ st.set_page_config(page_title="Nano Publications", layout="wide")
 
 tabs = st.tabs(["Random URI", "Own URI"])
 
-# Inicjalizacja stanów dla obu zakładek
 if "random_selected_uri" not in st.session_state:
     st.session_state.random_selected_uri = None
 
@@ -156,7 +155,7 @@ if "own_selected_uri" not in st.session_state:
     st.session_state.own_selected_uri = None
 
 with tabs[0]:  # Random URI
-    col1, col2 = st.columns([1, 2])
+    col1, separator, col2 = st.columns([1, 0.02, 2])
 
     with col1:  # Publications
         st.header("Random Nano-publications")
@@ -179,6 +178,14 @@ with tabs[0]:  # Random URI
 
             if st.button(button_text, key=f"random_{uri}"):
                 st.session_state.random_selected_uri = uri
+
+    with separator:
+        st.markdown(
+            """
+            <div style="height: 200vh; width: 1px; background-color: black; margin: auto;"></div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col2:  # Comments
         st.header("Comments (Selected Random URI)")
@@ -203,13 +210,18 @@ with tabs[0]:  # Random URI
                 display_comments(comments)
             else:
                 st.write("No comments.")
+        else:
+            st.markdown(
+                "<p style='font-style: italic; color: gray;'>Select a nano-publication to view comments.</p>",
+                unsafe_allow_html=True
+            )
 
         if selected_uri and st.button("Add comment to selected nanopub (Random)"):
             url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
             webbrowser.open(url)
 
 with tabs[1]:  # Own URI
-    col1, col2 = st.columns([1, 2])
+    col1, separator, col2 = st.columns([1, 0.02, 2])
 
     with col1:  # Publications
         st.header("Own URI Nano-publication")
@@ -220,6 +232,14 @@ with tabs[1]:  # Own URI
                 st.session_state.uri_list.append(user_input)
                 st.session_state.own_selected_uri = user_input
                 st.success("Loading nano-publication ...")
+
+    with separator:
+        st.markdown(
+            """
+            <div style="height: 200vh; width: 1px; background-color: black; margin: auto;"></div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col2:  # Comments
         st.header("Comments (Own URI)")
@@ -244,6 +264,11 @@ with tabs[1]:  # Own URI
                 display_comments(comments)
             else:
                 st.write("No comments.")
+        else:
+            st.markdown(
+                "<p style='font-style: italic; color: gray;'>Enter nano-publication URI to view comments.</p>",
+                unsafe_allow_html=True
+            )
 
         if selected_uri and st.button("Add comment to selected nanopub (Own URI)"):
             url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
