@@ -80,6 +80,7 @@ def display_comments(comments: list, level: int = 0) -> None:
         nonlocal reactions_count
 
         for comment in comments:
+            comment_uri = comment.get("uri", "")
             date = comment.get("date", "Unknown date")
             text = comment.get("text", "No text found")
             author_link = comment.get("author", "#")
@@ -96,9 +97,9 @@ def display_comments(comments: list, level: int = 0) -> None:
                 <div style="margin-top: 5px;">{text}</div>
             """
 
+            html_code += '<div style="display: flex; gap: 5px; margin-top: 5px;">'
             if comment.get("reactions"):
                 reactions_count += 1
-                html_code += '<div style="display: flex; gap: 5px; margin-top: 5px;">'
                 sorted_reactions = sorted(comment["reactions"].items(), key=lambda item: int(item[1]), reverse=True)
                 for emoji, count in sorted_reactions:
                     html_code += f"""
@@ -107,9 +108,17 @@ def display_comments(comments: list, level: int = 0) -> None:
                         <span style="font-size: 18px;">{emoji}</span> {count}
                     </div>
                     """
-                html_code += '</div>'
+            add_reaction_url = f"https://nanodash.knowledgepixels.com/publish?7&template=https://w3id.org/np/RAGtFS48ML2ledlSC-7Astx_fzFO_Swtb-zNGGuJCo1RQ&param_thing={comment_uri}"
+            html_code += f"""
+                <button style="background-color: white; border: 1px solid #ddd; border-radius: 5px;
+                            padding: 5px 10px; cursor: pointer; position: relative;"
+                        onclick="window.open('{add_reaction_url}', '_blank')"
+                        onmouseover="this.setAttribute('title', 'Add a reaction to this comment')">
+                    ➕
+                </button>
+                </div>
+            """
 
-            comment_uri = comment.get("uri", "")
             if comment_uri:
                 reply_url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={comment_uri}"
                 html_code += f"""
@@ -126,7 +135,7 @@ def display_comments(comments: list, level: int = 0) -> None:
     build_html(comments, level)
     html_code += '</div>'
 
-    components.html(html_code, height=(comments_count + reactions_count)*80)
+    components.html(html_code, height=(comments_count + reactions_count) * 80)
 
 
 def comment_form(parent_uri: str, level: int) -> None:
