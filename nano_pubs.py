@@ -290,3 +290,32 @@ class NanoPubs:
             reaction["reaction"]["value"]: reaction["count"]["value"]
             for reaction in results["results"]["bindings"]
         }
+
+    def find_npubs(
+            self,
+            search_term: str
+            ) -> list[dict]:
+        query = f"""
+        SELECT DISTINCT ?publication ?title WHERE {{
+        VALUES ?publication {{ <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> }}
+        ?publication <http://www.nanopub.org/nschema#hasAssertion> ?assertion .
+            GRAPH ?assertion {{
+                {{
+                    ?assertion <http://www.w3.org/2000/01/rdf-schema#label> ?title .
+                    FILTER(REGEX(LCASE(REPLACE(str(?title), "\\\\s+", " ")), LCASE(REPLACE("{search_term}", "\\\\s+", " "))))
+                }}
+            }}
+        }}
+        """
+
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.queryAndConvert()
+        results = results["results"]["bindings"]
+        return [
+            {
+                "title": npub["title"]["value"],
+                "uri": npub["publication"]["value"]
+            }
+            for npub in results
+        ]

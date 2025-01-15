@@ -190,13 +190,16 @@ def parse_date(date: str) -> str:
 
 st.set_page_config(page_title="Nano Publications", layout="wide")
 
-tabs = st.tabs(["Random URI", "Own URI"])
+tabs = st.tabs(["Random Nano-Pubs", "Own Nano-Pub URI", "Find Nano-Pub"])
 
 if "random_selected_uri" not in st.session_state:
     st.session_state.random_selected_uri = None
 
 if "own_selected_uri" not in st.session_state:
     st.session_state.own_selected_uri = None
+
+if "find_selected_uri" not in st.session_state:
+    st.session_state.find_selected_uri = None
 
 with tabs[0]:  # Random URI
     col1, separator, col2 = st.columns([1, 0.02, 2])
@@ -317,3 +320,75 @@ with tabs[1]:  # Own URI
         if selected_uri and st.button("Add comment to selected nanopub (Own URI)"):
             url = f"https://nanodash.petapico.org/publish?5&template=http://purl.org/np/RA3gQDMnYbKCTiQeiUYJYBaH6HUhz8f3HIg71itlsZDgA&param_thing={selected_uri}"
             webbrowser.open(url)
+
+with tabs[2]:  # Find Nano-Pub
+    col1, separator, col2 = st.columns([1, 0.02, 2])
+
+    with col1:  # Search form
+        st.header("Find Nano-publications")
+        with st.container():  # Small container for text input and button
+            inner_col1, inner_col2 = st.columns([3, 1])
+            with inner_col1:
+                phrase = st.text_input("Enter the phrase you are looking for:")
+            with inner_col2:
+                if st.button("Show"):
+                    if phrase:
+                        search_results = nano_pubs.find_npubs(phrase)
+                        st.session_state.search_results = search_results
+
+                        if not search_results:
+                            st.write("No nano-publications found for the given phrase.")
+                    else:
+                        st.write("Please enter a search phrase.")
+
+        # Results of searching
+        st.markdown("---")
+        if "search_results" in st.session_state and st.session_state.search_results:
+            st.subheader("Search Results:")
+            for result in st.session_state.search_results:
+                uri = result.get("uri", "Unknown URI")
+                title = result.get("title", "No Title")
+                if st.button(title, key=f"find_{uri}"):
+                    st.session_state.find_selected_uri = uri
+        else:
+            st.markdown(
+                "<p style='font-style: italic; color: gray;'>No search results yet. Use the search above.</p>",
+                unsafe_allow_html=True
+            )
+
+    with separator:
+        st.markdown(
+            """
+            <div style="height: 200vh; width: 1px; background-color: black; margin: auto;"></div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col2:  # Comments and details
+        st.header("Details (Selected Search Result)")
+        selected_uri = st.session_state.find_selected_uri
+        if selected_uri:
+            author = fetch_npub_author(selected_uri)
+            date = fetch_npub_date(selected_uri)
+            if date != DATE_NOT_FOUND:
+                date = parse_date(date)
+
+            text = nano_pubs.get_npub_text(npub_uri=selected_uri)
+            if text == selected_uri:
+                text = "No text found!"
+
+            st.write(f"**Selected Nanopub:** {selected_uri}")
+            st.write(f"**Author:** {author}")
+            st.write(f"**Date:** {date}")
+            st.write(f"**Text:** {text}")
+
+            comments = nano_pubs.get_npub_comments_tree(npub_uri=selected_uri)
+            if comments:
+                display_comments(comments)
+            else:
+                st.write("No comments.")
+        else:
+            st.markdown(
+                "<p style='font-style: italic; color: gray;'>Search for nano-publications to view details.</p>",
+                unsafe_allow_html=True
+            )
