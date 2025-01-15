@@ -205,7 +205,7 @@ with tabs[0]:  # Random URI
     col1, separator, col2 = st.columns([1, 0.02, 2])
 
     with col1:  # Publications
-        st.header("Random Nano-publications")
+        # st.header("Random Nano-publications")
 
         if "uri_list" not in st.session_state:
             st.session_state.uri_list = nano_pubs.get_random_npubs(10, True)
@@ -271,7 +271,7 @@ with tabs[1]:  # Own URI
     col1, separator, col2 = st.columns([1, 0.02, 2])
 
     with col1:  # Publications
-        st.header("Own URI Nano-publication")
+        # st.header("Own URI Nano-publication")
 
         user_input = st.text_input("Enter own nanopub URI:")
         if st.button("Load nano-publication"):
@@ -325,7 +325,7 @@ with tabs[2]:  # Find Nano-Pub
     col1, separator, col2 = st.columns([1, 0.02, 2])
 
     with col1:  # Search form
-        st.header("Find Nano-publications")
+        # st.header("Find Nano-publications")
         with st.container():  # Small container for text input and button
             inner_col1, inner_col2 = st.columns([3, 1])
             with inner_col1:
@@ -344,7 +344,6 @@ with tabs[2]:  # Find Nano-Pub
         # Results of searching
         st.markdown("---")
         if "search_results" in st.session_state and st.session_state.search_results:
-            st.subheader("Search Results:")
             for result in st.session_state.search_results:
                 uri = result.get("uri", "Unknown URI")
                 title = result.get("title", "No Title")

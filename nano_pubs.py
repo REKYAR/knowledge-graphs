@@ -291,10 +291,7 @@ class NanoPubs:
             for reaction in results["results"]["bindings"]
         }
 
-    def find_npubs(
-            self,
-            search_term: str
-            ) -> list[dict]:
+    def find_npubs(self, search_term: str) -> list[dict]:
         query = f"""
         SELECT DISTINCT ?publication ?title WHERE {{
         VALUES ?publication {{ <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> }}
