@@ -69,7 +69,8 @@ def extract_authors(comments) -> list[str]:
     return list(set(authors))
 
 
-def display_comments(comments: list, level: int = 0) -> None:
+@st.cache_data
+def generate_comments_html(comments: list, level: int = 0) -> str:
     html_code = '<div style="font-family: Arial, sans-serif;">'
     comments_count = 0
     reactions_count = 0
@@ -84,7 +85,12 @@ def display_comments(comments: list, level: int = 0) -> None:
             date = comment.get("date", "Unknown date")
             text = comment.get("text", "No text found")
             author_link = comment.get("author", "#")
-            author_nick = nicks.get_nick(author_link).title() if author_link else "Unknown Author"
+
+            if author_link:
+                author_nick = nicks.get_nick(author_link).title()
+            else:
+                author_nick = "Unknown Author"
+
             comments_count += 1
 
             html_code += f"""
@@ -100,7 +106,12 @@ def display_comments(comments: list, level: int = 0) -> None:
             html_code += '<div style="display: flex; gap: 5px; margin-top: 5px;">'
             if comment.get("reactions"):
                 reactions_count += 1
-                sorted_reactions = sorted(comment["reactions"].items(), key=lambda item: int(item[1]), reverse=True)
+                sorted_reactions = sorted(
+                    comment["reactions"].items(),
+                    key=lambda item: int(item[1]),
+                    reverse=True
+                    )
+
                 for emoji, count in sorted_reactions:
                     html_code += f"""
                     <div style="border: 1px solid #ddd; border-radius: 5px;
@@ -134,8 +145,32 @@ def display_comments(comments: list, level: int = 0) -> None:
 
     build_html(comments, level)
     html_code += '</div>'
+    return html_code
 
+
+def display_comments(comments: list, level: int = 0) -> None:
+    html_code = generate_comments_html(comments, level)
+    comments_count = len(comments)
+    reactions_count = sum([
+        len(comment.get("reactions", []))
+        for comment in comments
+        ])
     components.html(html_code, height=(comments_count + reactions_count) * 80)
+
+
+@st.cache_data
+def fetch_npub_text(npub_uri: str, simple: bool) -> str:
+    return nano_pubs.get_npub_text(npub_uri=npub_uri, simple=simple)
+
+
+@st.cache_data
+def fetch_npub_author(npub_uri: str) -> str:
+    return nano_pubs.get_author(npub_uri=npub_uri)
+
+
+@st.cache_data
+def fetch_npub_date(npub_uri: str) -> str:
+    return nano_pubs.get_date(npub_uri=npub_uri)
 
 
 def comment_form(parent_uri: str, level: int) -> None:
@@ -181,7 +216,7 @@ with tabs[0]:  # Random URI
                 items.append(new_uri)
 
         for uri in items:
-            button_text = nano_pubs.get_npub_text(npub_uri=uri, simple=True)
+            button_text = fetch_npub_text(uri, simple=True)
             if button_text == TEXT_NOT_FOUND:
                 button_text = uri
 
@@ -200,8 +235,8 @@ with tabs[0]:  # Random URI
         st.header("Comments (Selected Random URI)")
         selected_uri = st.session_state.random_selected_uri
         if selected_uri:
-            author = nano_pubs.get_author(npub_uri=selected_uri)
-            date = nano_pubs.get_date(npub_uri=selected_uri)
+            author = fetch_npub_author(selected_uri)
+            date = fetch_npub_date(selected_uri)
             if date != DATE_NOT_FOUND:
                 date = parse_date(date)
 
@@ -254,8 +289,8 @@ with tabs[1]:  # Own URI
         st.header("Comments (Own URI)")
         selected_uri = st.session_state.own_selected_uri
         if selected_uri:
-            author = nano_pubs.get_author(npub_uri=selected_uri)
-            date = nano_pubs.get_date(npub_uri=selected_uri)
+            author = fetch_npub_author(selected_uri)
+            date = fetch_npub_date(selected_uri)
             if date != DATE_NOT_FOUND:
                 date = parse_date(date)
 
