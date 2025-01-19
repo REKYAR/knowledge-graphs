@@ -294,16 +294,31 @@ class NanoPubs:
     def find_npubs(self, search_term: str) -> list[dict]:
         query = f"""
         SELECT DISTINCT ?publication ?title WHERE {{
-        VALUES ?publication {{ <https://w3id.org/np/RAG7srcMhYZqsqWoNVs_dh8XwM359JGjLwaiGZ8yxctuU> }}
-        ?publication <http://www.nanopub.org/nschema#hasAssertion> ?assertion .
-            GRAPH ?assertion {{
-                {{
-                    ?assertion <http://www.w3.org/2000/01/rdf-schema#label> ?title .
-                    FILTER(REGEX(LCASE(REPLACE(str(?title), "\\\\s+", " ")), LCASE(REPLACE("{search_term}", "\\\\s+", " "))))
-                }}
+            ?publication <http://www.nanopub.org/nschema#hasAssertion> ?assertion ;
+                            <http://www.nanopub.org/nschema#hasPublicationInfo> ?pubinfo .
+            
+            GRAPH ?pubinfo {{
+                ?publication <https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate> 
+                            <https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw> .
             }}
-        }}
+            
+            GRAPH ?assertion {{
+                ?assertion <http://www.w3.org/2000/01/rdf-schema#label> ?title .
+                FILTER(REGEX(LCASE(REPLACE(str(?title), "\\\\s+", " ")), LCASE(REPLACE(str("{search_term}"), "\\\\s+", " "))))
+            }}
+            }}
         """
+        # query = f"""
+        # SELECT DISTINCT ?publication ?title WHERE {{
+        # ?publication <http://www.nanopub.org/nschema#hasAssertion> ?assertion .
+        #     GRAPH ?assertion {{
+        #         {{
+        #             ?assertion <http://www.w3.org/2000/01/rdf-schema#label> ?title .
+        #             FILTER(REGEX(LCASE(REPLACE(str(?title), "\\\\s+", " ")), LCASE(REPLACE("{search_term}", "\\\\s+", " "))))
+        #         }}
+        #     }}
+        # }}
+        # """
 
         self.sparql.setQuery(query)
         self.sparql.setReturnFormat(JSON)

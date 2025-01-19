@@ -165,3 +165,19 @@ SELECT DISTINCT ?name WHERE {
 }
 
 // https://orcid.org/0009-0009-6638-993X https://orcid.org/0000-0002-2543-9461
+
+#npub search fixed
+SELECT DISTINCT ?publication ?title WHERE {
+   ?publication <http://www.nanopub.org/nschema#hasAssertion> ?assertion ;
+                <http://www.nanopub.org/nschema#hasPublicationInfo> ?pubinfo .
+   
+   GRAPH ?pubinfo {
+      ?publication <https://w3id.org/np/o/ntemplate/wasCreatedFromTemplate> 
+                  <https://w3id.org/np/RA66vcP_zCtPYIqFaQkv-WhjYZnUiToHRG5EmbMAovZSw> .
+   }
+   
+   GRAPH ?assertion {
+      ?assertion <http://www.w3.org/2000/01/rdf-schema#label> ?title .
+      FILTER(REGEX(LCASE(REPLACE(str(?title), "\\s+", " ")), LCASE(REPLACE(str("hel"), "\\s+", " "))))
+   }
+}
